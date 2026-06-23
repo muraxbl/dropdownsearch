@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>dropdownsearch</name>
+    <displayName><![CDATA[Búsqueda Desplegable Avanzada]]></displayName>
+    <version><![CDATA[2.3.0]]></version>
+    <description><![CDATA[Módulo de búsqueda con despliegue dinámico, filtros avanzados, URLs compartibles y traducciones]]></description>
+    <author><![CDATA[Luis Coves]]></author>
+    <tab><![CDATA[search_filter]]></tab>
+	<confirmUninstall><![CDATA[¿Estás seguro de que quieres desinstalar este módulo?]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
+	<limited_countries></limited_countries>
+</module>
