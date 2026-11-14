@@ -2,7 +2,7 @@
 <module>
     <name>dropdownsearch</name>
     <displayName><![CDATA[Búsqueda Desplegable Avanzada]]></displayName>
-    <version><![CDATA[2.3.0]]></version>
+    <version><![CDATA[2.3.1]]></version>
     <description><![CDATA[Módulo de búsqueda con despliegue dinámico, filtros avanzados, URLs compartibles y traducciones]]></description>
     <author><![CDATA[Luis Coves]]></author>
     <tab><![CDATA[search_filter]]></tab>

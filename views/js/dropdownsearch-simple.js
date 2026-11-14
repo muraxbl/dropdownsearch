@@ -614,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function() {
         imageDiv.className = 'result-image';
         
         const img = document.createElement('img');
-        img.src = product.image || '/img/p/en-default-medium_default.jpg';
+        img.src = window.dropdownsearchSecurity.url(product.image) || '/img/p/en-default-medium_default.jpg';
         img.alt = product.name || '';
         img.onerror = function() {
             this.src = '/img/p/en-default-medium_default.jpg';
@@ -653,10 +653,11 @@ document.addEventListener('DOMContentLoaded', function() {
         item.appendChild(contentDiv);
 
         // Click handler para ir al producto
-        if (product.link) {
+        const productUrl = window.dropdownsearchSecurity.url(product.link);
+        if (productUrl) {
             item.style.cursor = 'pointer';
             item.addEventListener('click', function() {
-                window.location.href = product.link;
+                window.location.href = productUrl;
             });
         }
 
@@ -672,8 +673,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (noResultsDiv) {
-            noResultsDiv.innerHTML = '<p>' + t('no_results', 'No results found') + ' "<strong>' + 
-                (query || '').replace(/[<>]/g, '') + '</strong>"</p>';
+            noResultsDiv.textContent = t('no_results', 'No results found') + ' \"' + (query || '') + '\"';
             noResultsDiv.style.display = 'block';
         }
     }

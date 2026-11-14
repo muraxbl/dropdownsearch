@@ -1,0 +1,41 @@
+name: Module checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  security-regressions:
+    runs-on: ubuntu-24.04
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: test-only
+          MARIADB_DATABASE: dropdownsearch_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mariadb-admin ping -h 127.0.0.1 -ptest-only"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: PHP and JavaScript syntax
+        run: |
+          find . -name '*.php' -print0 | xargs -0 -n1 php -l
+          find views/js tests -name '*.js' -o -name '*.mjs' | while read -r file; do node --check "$file"; done
+      - name: Request and configuration boundaries
+        run: |
+          php tests/request.php
+          php tests/endpoint.php
+          php tests/configuration.php
+      - name: Catalog access with real SQL
+        env:
+          DROPDOWNSEARCH_TEST_DSN: 'mysql:host=127.0.0.1;port=3306;dbname=dropdownsearch_test;charset=utf8mb4'
+          DROPDOWNSEARCH_TEST_PASSWORD: test-only
+        run: php tests/catalog.php
+      - name: Browser security regressions
+        run: node tests/browser.mjs
