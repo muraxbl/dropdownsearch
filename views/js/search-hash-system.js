@@ -133,10 +133,14 @@ class SearchHashSystem {
      */
     decodeHash(hash) {
         try {
+            if (typeof hash !== 'string' || hash.length > 32768) return null;
             const normalized = hash.replace(/-/g, '+').replace(/_/g, '/');
             const padded = normalized + '='.repeat((4 - normalized.length % 4) % 4);
             const decoded = decodeURIComponent(atob(padded));
-            return JSON.parse(decoded);
+            const params = JSON.parse(decoded);
+            if (!params || typeof params.query !== 'string' || new TextEncoder().encode(params.query).length > 100
+                || params.query.trim().split(/\s+/u).length > 10) return null;
+            return { query: params.query, filters: window.dropdownsearchSecurity.filters(params.filters), page: 1 };
         } catch (error) {
             console.error('Error decoding hash:', error);
             return null;

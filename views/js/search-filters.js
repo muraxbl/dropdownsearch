@@ -502,7 +502,7 @@ class SearchFiltersManager {
         const value = e.target.value;
         const isChecked = e.target.checked;
 
-       // console.log(`Filter change: ${filterType}=${value}, checked=${isChecked}`);
+       // console.log(`Filter change: ${window.dropdownsearchSecurity.escape(filterType)}=${value}, checked=${isChecked}`);
 
         if (filterType === 'in_stock') {
             if (isChecked) {
@@ -613,11 +613,11 @@ class SearchFiltersManager {
             const isChecked = this.activeFilters.categories && this.activeFilters.categories.includes(category.id_category.toString());
             html += `
                 <label class="filter-option filter-checkbox">
-                    <input type="checkbox" data-filter-type="categories" value="${category.id_category}" ${isChecked ? 'checked' : ''}>
+                    <input type="checkbox" data-filter-type="categories" value="${window.dropdownsearchSecurity.escape(category.id_category)}" ${isChecked ? 'checked' : ''}>
                     <span class="checkmark"></span>
                     <span class="filter-label">
-                        ${category.name}
-                        <span class="product-count">(${category.product_count})</span>
+                        ${window.dropdownsearchSecurity.escape(category.name)}
+                        <span class="product-count">(${window.dropdownsearchSecurity.escape(category.product_count)})</span>
                     </span>
                 </label>
             `;
@@ -643,11 +643,11 @@ class SearchFiltersManager {
             const isChecked = this.activeFilters.manufacturers && this.activeFilters.manufacturers.includes(manufacturer.id_manufacturer.toString());
             html += `
                 <label class="filter-option filter-checkbox">
-                    <input type="checkbox" data-filter-type="manufacturers" value="${manufacturer.id_manufacturer}" ${isChecked ? 'checked' : ''}>
+                    <input type="checkbox" data-filter-type="manufacturers" value="${window.dropdownsearchSecurity.escape(manufacturer.id_manufacturer)}" ${isChecked ? 'checked' : ''}>
                     <span class="checkmark"></span>
                     <span class="filter-label">
-                        ${manufacturer.name}
-                        <span class="product-count">(${manufacturer.product_count})</span>
+                        ${window.dropdownsearchSecurity.escape(manufacturer.name)}
+                        <span class="product-count">(${window.dropdownsearchSecurity.escape(manufacturer.product_count)})</span>
                     </span>
                 </label>
             `;
@@ -671,7 +671,7 @@ class SearchFiltersManager {
         let html = '';
         this.availableFilters.attributes.forEach(group => {
             html += `<div class="attribute-group">
-                <div class="attribute-group-name">${group.name}</div>
+                <div class="attribute-group-name">${window.dropdownsearchSecurity.escape(group.name)}</div>
             `;
             
             group.attributes.forEach(attr => {
@@ -680,12 +680,12 @@ class SearchFiltersManager {
                 
                 html += `
                     <label class="filter-option filter-checkbox">
-                        <input type="checkbox" data-filter-type="${filterKey}" value="${attr.id_attribute}" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" data-filter-type="${window.dropdownsearchSecurity.escape(filterKey)}" value="${window.dropdownsearchSecurity.escape(attr.id_attribute)}" ${isChecked ? 'checked' : ''}>
                         <span class="checkmark"></span>
                         <span class="filter-label">
-                            ${attr.color ? `<span class="color-swatch" style="background-color: ${attr.color}"></span>` : ''}
-                            ${attr.name}
-                            <span class="product-count">(${attr.product_count})</span>
+                            ${attr.color ? `<span class="color-swatch" style="background-color: ${window.dropdownsearchSecurity.escape(/^#[0-9a-f]{3,8}$/i.test(attr.color) ? attr.color : 'transparent')}"></span>` : ''}
+                            ${window.dropdownsearchSecurity.escape(attr.name)}
+                            <span class="product-count">(${window.dropdownsearchSecurity.escape(attr.product_count)})</span>
                         </span>
                     </label>
                 `;
@@ -711,7 +711,7 @@ class SearchFiltersManager {
         let html = '';
         this.availableFilters.features.forEach(feature => {
             html += `<div class="feature-group">
-                <div class="feature-group-name">${feature.name}</div>
+                <div class="feature-group-name">${window.dropdownsearchSecurity.escape(feature.name)}</div>
             `;
             
             feature.values.forEach(value => {
@@ -720,11 +720,11 @@ class SearchFiltersManager {
                 
                 html += `
                     <label class="filter-option filter-checkbox">
-                        <input type="checkbox" data-filter-type="${filterKey}" value="${value.id_feature_value}" ${isChecked ? 'checked' : ''}>
+                        <input type="checkbox" data-filter-type="${window.dropdownsearchSecurity.escape(filterKey)}" value="${window.dropdownsearchSecurity.escape(value.id_feature_value)}" ${isChecked ? 'checked' : ''}>
                         <span class="checkmark"></span>
                         <span class="filter-label">
-                            ${value.value}
-                            <span class="product-count">(${value.product_count})</span>
+                            ${window.dropdownsearchSecurity.escape(value.value)}
+                            <span class="product-count">(${window.dropdownsearchSecurity.escape(value.product_count)})</span>
                         </span>
                     </label>
                 `;
@@ -738,6 +738,8 @@ class SearchFiltersManager {
      * Actualizar rango de precios
      */
     updatePriceRange() {
+        const priceGroup = document.querySelector('[data-filter="price"]');
+        if (priceGroup) priceGroup.style.display = this.availableFilters.price_range ? 'block' : 'none';
         if (!this.availableFilters.price_range) return;
         
         const priceMin = document.querySelector('.price-min');
@@ -773,18 +775,18 @@ class SearchFiltersManager {
             }
             
             if (filterType === 'price_min' && filterValue) {
-                html += `<span class="active-filter-tag">${t('price_min', 'Min. price')}: ${filterValue}€ <button class="remove-filter" data-filter="price_min">×</button></span>`;
+                html += `<span class="active-filter-tag">${t('price_min', 'Min. price')}: ${window.dropdownsearchSecurity.escape(filterValue)}€ <button class="remove-filter" data-filter="price_min">×</button></span>`;
                 hasActiveFilters = true;
             }
             
             if (filterType === 'price_max' && filterValue) {
-                html += `<span class="active-filter-tag">${t('price_max', 'Max. price')}: ${filterValue}€ <button class="remove-filter" data-filter="price_max">×</button></span>`;
+                html += `<span class="active-filter-tag">${t('price_max', 'Max. price')}: ${window.dropdownsearchSecurity.escape(filterValue)}€ <button class="remove-filter" data-filter="price_max">×</button></span>`;
                 hasActiveFilters = true;
             }
             
             if (Array.isArray(filterValue) && filterValue.length > 0) {
                 const label = this.getFilterLabel(filterType);
-                html += `<span class="active-filter-tag">${label} (${filterValue.length}) <button class="remove-filter" data-filter="${filterType}">×</button></span>`;
+                html += `<span class="active-filter-tag">${window.dropdownsearchSecurity.escape(label)} (${filterValue.length}) <button class="remove-filter" data-filter="${window.dropdownsearchSecurity.escape(filterType)}">×</button></span>`;
                 hasActiveFilters = true;
             }
         });
@@ -839,7 +841,8 @@ class SearchFiltersManager {
             delete this.activeFilters[filterType];
             
             // Desmarcar todos los checkboxes de este tipo
-            document.querySelectorAll(`input[data-filter-type="${filterType}"]`).forEach(cb => {
+            document.querySelectorAll('.search-filters-panel input').forEach(cb => {
+                if (cb.dataset.filterType !== filterType) return;
                 cb.checked = false;
             });
         }
@@ -936,7 +939,7 @@ class SearchFiltersManager {
         imageDiv.className = 'result-image';
         
         const img = document.createElement('img');
-        img.src = product.image || '/img/p/en-default-medium_default.jpg';
+        img.src = window.dropdownsearchSecurity.url(product.image) || '/img/p/en-default-medium_default.jpg';
         img.alt = product.name || '';
         img.onerror = function() {
             this.src = '/img/p/en-default-medium_default.jpg';
@@ -1000,10 +1003,11 @@ class SearchFiltersManager {
         item.appendChild(infoDiv);
 
         // Click handler
-        if (product.link) {
+        const productUrl = window.dropdownsearchSecurity.url(product.link);
+        if (productUrl) {
             item.style.cursor = 'pointer';
             item.addEventListener('click', function() {
-                window.open(product.link, '_blank');
+                window.open(productUrl, '_blank', 'noopener,noreferrer');
             });
         }
 
@@ -1035,7 +1039,7 @@ class SearchFiltersManager {
         const noResultsDiv = document.querySelector('.no-results');
         if (noResultsDiv) {
             noResultsDiv.style.display = 'block';
-            noResultsDiv.innerHTML = `<p>${t('search_error', 'Error')}: ${message}</p>`;
+            noResultsDiv.textContent = `${t('search_error', 'Error')}: ${message}`;
         }
     }
 
@@ -1047,7 +1051,7 @@ class SearchFiltersManager {
     }
 
     setActiveFilters(filters) {
-        this.activeFilters = filters || {};
+        this.activeFilters = window.dropdownsearchSecurity.filters(filters);
         this.updateActiveFiltersDisplay();
         // Actualizar checkboxes y inputs según los filtros
         this.applyFiltersToUI();
@@ -1075,7 +1079,7 @@ class SearchFiltersManager {
                 if (input) input.value = filterValue;
             } else if (Array.isArray(filterValue)) {
                 filterValue.forEach(value => {
-                    const checkbox = document.querySelector(`input[data-filter-type="${filterType}"][value="${value}"]`);
+                    const checkbox = Array.from(document.querySelectorAll('.search-filters-panel input')).find(input => input.dataset.filterType === filterType && input.value === String(value));
                     if (checkbox) checkbox.checked = true;
                 });
             }

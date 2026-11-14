@@ -44,7 +44,7 @@ class DropdownSearch extends Module
     {
         $this->name = 'dropdownsearch';
         $this->tab = 'search_filter';
-        $this->version = '2.3.0';
+        $this->version = '2.3.1';
         $this->author = 'Luis C';
         $this->need_instance = 0;
 
@@ -139,6 +139,12 @@ class DropdownSearch extends Module
             ['position' => 'bottom', 'priority' => 199]
         );
 
+        $this->context->controller->registerJavascript(
+            'module-dropdownsearch-security',
+            'modules/dropdownsearch/views/js/search-security.js',
+            ['position' => 'bottom', 'priority' => 198]
+        );
+
         // JavaScript principal
         $this->context->controller->registerJavascript(
             'module-dropdownsearch-js',
@@ -198,6 +204,12 @@ class DropdownSearch extends Module
      */
     private function processConfiguration()
     {
+        $token = Tools::getValue('token');
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !is_string($token)
+            || !hash_equals(Tools::getAdminTokenLite('AdminModules'), $token)) {
+            return $this->displayError($this->l('Solicitud de configuración no válida.'));
+        }
+
         $selector = trim((string) Tools::getValue(self::CONFIG_TRIGGER_SELECTOR));
         $typingDelay = (int) Tools::getValue(self::CONFIG_TYPING_DELAY);
         $minQueryLength = (int) Tools::getValue(self::CONFIG_MIN_QUERY_LENGTH);

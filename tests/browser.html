@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>DropdownSearch security regression</title>
+<body>
+<button id="search-icon">Search</button>
+<div id="dropdown-search-overlay"><div class="dropdown-search-container">
+<div class="search-input-wrapper"><input id="dropdown-search-input"><button id="close-search">Close</button></div>
+<div id="search-results"><div class="search-loading"><p></p></div><div class="search-results-list"></div><div class="no-results"></div></div>
+</div></div><pre id="test-result">RUNNING</pre>
+<script>window.dropdownsearchConfig = {triggerSelector:'#search-icon'};</script>
+<script src="../views/js/search-security.js"></script>
+<script src="../views/js/dropdownsearch-simple.js"></script>
+<script src="../views/js/search-filters.js"></script>
+<script src="../views/js/search-hash-system.js"></script>
+<script>
+addEventListener('load', () => setTimeout(async () => {
+    const output = document.getElementById('test-result');
+    try {
+        const check = (condition, message) => { if (!condition) throw Error(message); };
+        const manager = window.enhancedSearchFilters;
+        const payload = '<img src="invalid-image" onerror="window.xssExecuted=true">';
+        const params = {query:'lamp', filters:{price_min:payload, categories:['1']}};
+        const hash = btoa(encodeURIComponent(JSON.stringify(params))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        const decoded = window.searchHashSystem.decodeHash(hash);
+        manager.setActiveFilters(decoded.filters);
+        await new Promise(resolve => setTimeout(resolve, 50));
+        check(!document.querySelector('.active-filters-list img'), 'Shared URL injected markup (script executed: ' + Boolean(window.xssExecuted) + ')');
+        manager.activeFilters = {price_min:payload, ['features_' + payload]:['1']};
+        manager.updateActiveFiltersDisplay();
+        check(!document.querySelector('.active-filters-list img'), 'Active filters injected markup');
+        manager.availableFilters = {
+            categories:[{id_category:1, name:payload, product_count:1}],
+            manufacturers:[{id_manufacturer:1, name:payload, product_count:1}],
+            attributes:[{id_attribute_group:1, name:payload, attributes:[{id_attribute:1, name:payload, color:'red\" onmouseover=\"window.xssExecuted=true', product_count:1}]}],
+            features:[{id_feature:1, name:payload, values:[{id_feature_value:1, value:payload, product_count:1}]}]
+        };
+        manager.updateFiltersUI();
+        check(!document.querySelector('.search-filters-panel img, .search-filters-panel [onmouseover]'), 'Catalog facets injected markup');
+        manager.showError(payload);
+        check(!document.querySelector('.no-results img'), 'Error message injected markup');
+        const item = manager.createProductElement({name:payload, image:'javascript:window.xssExecuted=true', link:'javascript:window.xssExecuted=true'});
+        check(item.querySelector('h4').textContent === payload, 'Product name is not plain text');
+        check(!item.querySelector('img').src.startsWith('javascript:'), 'Unsafe image URL accepted');
+        item.click();
+        const security = window.dropdownsearchSecurity;
+        for (const url of ['javascript:alert(1)', 'java\nscript:alert(1)', 'data:text/html,test', 'vbscript:test', '']) check(security.url(url) === '', 'Unsafe URL accepted');
+        check(security.url('/product/1').endsWith('/product/1'), 'Relative product URL rejected');
+        check(window.searchHashSystem.decodeHash('a'.repeat(32769)) === null, 'Oversized hash accepted');
+        check(window.searchHashSystem.decodeHash(btoa(encodeURIComponent('{"query":{}}'))) === null, 'Non-string hash query accepted');
+        manager.setActiveFilters({categories:['1'], price_min:12.5, in_stock:true});
+        check(document.querySelector('[data-filter-type="categories"]').checked, 'Valid filter selection broken');
+        check(document.querySelector('.price-min').value === '12.5', 'Valid price filter broken');
+        await new Promise(resolve => setTimeout(resolve, 50));
+        check(!window.xssExecuted, 'An injected script executed');
+        output.textContent = 'PASS browser: shared URLs, HTML sinks, catalog facets, errors, URL protocols, valid filters';
+        document.body.dataset.testResult = 'pass';
+    } catch (error) {
+        output.textContent = 'FAIL ' + error.message;
+        document.body.dataset.testResult = 'fail';
+    }
+}, 900));
+</script></body></html>
