@@ -1,16 +1,10 @@
-/**
- * Sistema de Hash para URLs Compartibles
- * Integra con el buscador existente
- */
-
 document.addEventListener('DOMContentLoaded', function() {
-   // console.log('🔗 Search hash system loading...');
-    
+
     setTimeout(function() {
         if (typeof window.searchHashSystem === 'undefined') {
             window.searchHashSystem = new SearchHashSystem();
         }
-    }, 700); // Esperar a que se carguen otros sistemas
+    }, 700);
 });
 
 class SearchHashSystem {
@@ -19,23 +13,19 @@ class SearchHashSystem {
         const moduleConfig = window.dropdownsearchConfig || {};
         this.minQueryLength = Number.isFinite(parseInt(moduleConfig.minQueryLength, 10)) ? Math.max(1, parseInt(moduleConfig.minQueryLength, 10)) : 2;
         this.init();
-        //console.log('🔗 SearchHashSystem initialized');
+
     }
 
     init() {
-        // Verificar si hay búsqueda en la URL al cargar
+
         this.checkUrlOnLoad();
-        
-        // Escuchar cambios en búsquedas para actualizar URL
+
         this.interceptSearches();
-        
-        // Crear botón de compartir
+
         this.addShareButton();
-        
-        // Escuchar cierre del buscador para limpiar hash
+
         this.listenForSearchClose();
-        
-        // Escuchar cambios en navegación
+
         window.addEventListener('popstate', () => {
             this.handleHashChange();
         });
@@ -45,47 +35,41 @@ class SearchHashSystem {
         });
     }
 
-    /**
-     * Escuchar cuando se cierra el buscador para limpiar el hash
-     */
     listenForSearchClose() {
-        // Método 1: Observar cambios en la clase del overlay
+
         const searchOverlay = document.getElementById('dropdown-search-overlay');
         if (searchOverlay) {
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                        // Si el overlay ya no tiene la clase 'active', limpiar hash
+
                         if (!searchOverlay.classList.contains('active')) {
                             this.clearHash();
                         }
                     }
                 });
             });
-            
+
             observer.observe(searchOverlay, { attributes: true });
         }
-        
-        // Método 2: Escuchar click en botón cerrar
+
         const closeBtn = document.getElementById('close-search');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
                 this.clearHash();
             });
         }
-        
-        // Método 3: Escuchar tecla Escape
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 const overlay = document.getElementById('dropdown-search-overlay');
                 if (overlay && overlay.classList.contains('active')) {
-                    // Se va a cerrar, limpiar hash
+
                     setTimeout(() => this.clearHash(), 100);
                 }
             }
         });
-        
-        // Método 4: Escuchar click en el overlay (fuera del contenedor)
+
         if (searchOverlay) {
             searchOverlay.addEventListener('click', (e) => {
                 if (e.target === searchOverlay) {
@@ -95,20 +79,14 @@ class SearchHashSystem {
         }
     }
 
-    /**
-     * Limpiar el hash de la URL
-     */
     clearHash() {
         if (window.location.hash) {
-            // Usar replaceState para no añadir entrada al historial
+
             history.replaceState(null, '', window.location.pathname + window.location.search);
-            //console.log('🔗 Hash cleared from URL');
+
         }
     }
 
-    /**
-     * Crear hash único para búsqueda
-     */
     createHash(searchParams) {
         try {
             const params = {
@@ -128,9 +106,6 @@ class SearchHashSystem {
         }
     }
 
-    /**
-     * Decodificar hash
-     */
     decodeHash(hash) {
         try {
             if (typeof hash !== 'string' || hash.length > 32768) return null;
@@ -147,88 +122,70 @@ class SearchHashSystem {
         }
     }
 
-    /**
-     * Actualizar URL con hash de búsqueda
-     */
     updateUrl(searchParams) {
         const hash = this.createHash(searchParams);
         if (hash) {
             const newUrl = `${window.location.pathname}${window.location.search}#search=${hash}`;
-            history.replaceState(null, '', newUrl); // replaceState en lugar de pushState
-           // console.log('🔗 URL updated:', newUrl);
+            history.replaceState(null, '', newUrl);
+
         }
     }
 
-    /**
-     * Obtener búsqueda desde URL
-     */
     getSearchFromUrl() {
         const urlHash = window.location.hash;
         const match = urlHash.match(/^#search=(.+)$/);
-        
+
         if (match) {
             return this.decodeHash(match[1]);
         }
         return null;
     }
 
-    /**
-     * Verificar búsqueda en URL al cargar
-     */
     checkUrlOnLoad() {
         const searchParams = this.getSearchFromUrl();
         if (searchParams && searchParams.query) {
-           // console.log('🔗 Found search in URL:', searchParams);
+
             setTimeout(() => {
                 this.executeSearchFromUrl(searchParams);
             }, 1000);
         }
     }
 
-    /**
-     * Ejecutar búsqueda desde URL
-     */
     executeSearchFromUrl(searchParams) {
         const searchInput = document.getElementById('dropdown-search-input');
         const searchOverlay = document.getElementById('dropdown-search-overlay');
-        
+
         if (searchInput && searchOverlay) {
-            // Abrir buscador
+
             searchOverlay.classList.add('active');
             document.body.classList.add('search-overlay-open');
-            
-            // Establecer búsqueda
+
             searchInput.value = searchParams.query;
             searchInput.focus();
-            
-            // Aplicar filtros si los hay
+
             if (window.enhancedSearchFilters && searchParams.filters) {
                 window.enhancedSearchFilters.setActiveFilters(searchParams.filters);
             }
-            
-            // Ejecutar búsqueda
+
             if (typeof window.performSearch === 'function') {
                 window.performSearch(searchParams.query, 1, true);
             }
         }
     }
 
-    /**
-     * Interceptar búsquedas para actualizar URL
-     */
     interceptSearches() {
-        // Escuchar eventos de input en el buscador
+
         const searchInput = document.getElementById('dropdown-search-input');
         if (searchInput) {
             let hashTimeout;
-            
+
             searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.trim();
                 if (query.length >= this.minQueryLength) {
                     clearTimeout(hashTimeout);
                     hashTimeout = setTimeout(() => {
                         this.updateUrlForCurrentSearch(query);
-                    }, 1000); // Actualizar URL después de 1 segundo de inactividad
+                    }, 1000);
                 }
             });
         }
@@ -241,42 +198,33 @@ class SearchHashSystem {
             }
         });
 
-        // También interceptar cuando se ejecuta performSearch
         const originalPerformSearch = window.performSearch;
         if (typeof originalPerformSearch === 'function') {
             window.performSearch = (...args) => {
                 const result = originalPerformSearch.apply(this, args);
-                
-                // Actualizar URL después de la búsqueda
+
                 setTimeout(() => {
                     const query = args[0];
                     if (query && query.length >= this.minQueryLength) {
                         this.updateUrlForCurrentSearch(query);
                     }
                 }, 500);
-                
+
                 return result;
             };
         }
     }
 
-    /**
-     * Actualizar URL para búsqueda actual
-     */
     updateUrlForCurrentSearch(query) {
         const searchParams = { query: query };
-        
-        // Incluir filtros si están disponibles
+
         if (window.enhancedSearchFilters) {
             searchParams.filters = window.enhancedSearchFilters.getActiveFilters();
         }
-        
+
         this.updateUrl(searchParams);
     }
 
-    /**
-     * Manejar cambios en hash
-     */
     handleHashChange() {
         const searchParams = this.getSearchFromUrl();
         if (searchParams) {
@@ -284,18 +232,12 @@ class SearchHashSystem {
         }
     }
 
-    /**
-     * Crear URL compartible
-     */
     createShareableUrl(query, filters = {}) {
         const searchParams = { query, filters };
         const hash = this.createHash(searchParams);
         return hash ? `${window.location.origin}${window.location.pathname}#search=${hash}` : null;
     }
 
-    /**
-     * Copiar enlace al portapapeles
-     */
     async copySearchLink() {
         const searchInput = document.getElementById('dropdown-search-input');
         if (!searchInput || !searchInput.value.trim()) {
@@ -307,11 +249,10 @@ class SearchHashSystem {
             const query = searchInput.value.trim();
             const filters = window.enhancedSearchFilters ? window.enhancedSearchFilters.getActiveFilters() : {};
             const shareableUrl = this.createShareableUrl(query, filters);
-            
+
             if (shareableUrl) {
                 await navigator.clipboard.writeText(shareableUrl);
                 this.showNotification(t('link_copied', 'Link copied to clipboard!'));
-                console.log('🔗 Shared URL:', shareableUrl);
             } else {
                 throw new Error('No se pudo crear la URL');
             }
@@ -321,40 +262,33 @@ class SearchHashSystem {
         }
     }
 
-    /**
-     * Añadir botón de compartir
-     */
     addShareButton() {
-        // Esperar a que aparezcan resultados para añadir el botón
+
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'childList') {
                     const resultsContainer = document.querySelector('.search-results-list');
                     const searchInput = document.getElementById('dropdown-search-input');
-                    
+
                     if (resultsContainer && searchInput && searchInput.value.trim().length >= 2) {
                         this.insertShareButton(resultsContainer);
                     }
                 }
             });
         });
-        
+
         const searchResults = document.getElementById('search-results');
         if (searchResults) {
             observer.observe(searchResults, { childList: true, subtree: true });
         }
     }
 
-    /**
-     * Insertar botón de compartir en resultados
-     */
     insertShareButton(resultsContainer) {
-        // Verificar si ya existe
+
         if (resultsContainer.querySelector('.search-share-button')) {
             return;
         }
 
-        // Crear botón
         const shareButton = document.createElement('div');
         shareButton.className = 'search-share-button';
         shareButton.innerHTML = `
@@ -366,7 +300,6 @@ class SearchHashSystem {
             </button>
         `;
 
-        // Estilos
         shareButton.style.cssText = `
             text-align: center;
             padding: 10px;
@@ -390,7 +323,6 @@ class SearchHashSystem {
             transition: all 0.2s ease;
         `;
 
-        // Eventos
         button.addEventListener('click', () => {
             this.copySearchLink();
         });
@@ -405,18 +337,14 @@ class SearchHashSystem {
             button.style.transform = 'translateY(0)';
         });
 
-        // Insertar al final del contenedor
         resultsContainer.appendChild(shareButton);
     }
 
-    /**
-     * Mostrar notificación
-     */
     showNotification(message, type = 'success') {
         const notification = document.createElement('div');
         notification.className = `search-hash-notification search-hash-notification--${type}`;
         notification.textContent = message;
-        
+
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -433,13 +361,13 @@ class SearchHashSystem {
             transform: translateX(100%);
             transition: transform 0.3s ease;
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.style.transform = 'translateX(0)';
         }, 100);
-        
+
         setTimeout(() => {
             notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
@@ -449,5 +377,4 @@ class SearchHashSystem {
     }
 }
 
-// API pública
 window.SearchHashSystem = SearchHashSystem;

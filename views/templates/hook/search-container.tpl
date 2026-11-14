@@ -1,8 +1,3 @@
-{*
-* Template para el contenedor de búsqueda desplegable
-* modules/dropdownsearch/views/templates/hook/search-container.tpl
-*}
-
 <div id="dropdown-search-overlay" class="dropdown-search-overlay {$dropdownsearch_layout_class|escape:'html':'UTF-8'}" style="{$dropdownsearch_style|escape:'html':'UTF-8'}">
     <div class="dropdown-search-container">
         <div class="search-input-wrapper">

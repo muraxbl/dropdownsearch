@@ -1,9 +1,5 @@
 <?php
-/**
- * Generador de traducciones para módulo de búsqueda
- * Genera un archivo JavaScript con todas las traducciones
- * modules/dropdownsearch/translations.php
- */
+
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -15,9 +11,8 @@ require_once(dirname(__FILE__) . '/../../init.php');
 $context = Context::getContext();
 $id_lang = (int) $context->language->id;
 
-// Definir todas las traducciones del módulo
 $translations = [
-    // Placeholders y textos del input
+
     'search_placeholder' => [
         1 => 'What are you looking for?',
         2 => 'O que você está procurando?',
@@ -26,8 +21,7 @@ $translations = [
         6 => 'Was suchen Sie?',
         7 => 'Cosa stai cercando?'
     ],
-    
-    // Estados de búsqueda
+
     'searching' => [
         1 => 'Searching...',
         2 => 'Pesquisando...',
@@ -36,7 +30,7 @@ $translations = [
         6 => 'Suchen...',
         7 => 'Ricerca...'
     ],
-    
+
     'no_results' => [
         1 => 'No results found',
         2 => 'Nenhum resultado encontrado',
@@ -45,7 +39,7 @@ $translations = [
         6 => 'Keine Ergebnisse gefunden',
         7 => 'Nessun risultato trovato'
     ],
-    
+
     'products_found' => [
         1 => 'products found',
         2 => 'produtos encontrados',
@@ -54,7 +48,7 @@ $translations = [
         6 => 'Produkte gefunden',
         7 => 'prodotti trovati'
     ],
-    
+
     'product_found' => [
         1 => 'product found',
         2 => 'produto encontrado',
@@ -63,8 +57,7 @@ $translations = [
         6 => 'Produkt gefunden',
         7 => 'prodotto trovato'
     ],
-    
-    // Filtros
+
     'filters' => [
         1 => 'Filters',
         2 => 'Filtros',
@@ -73,7 +66,7 @@ $translations = [
         6 => 'Filter',
         7 => 'Filtri'
     ],
-    
+
     'clear_filters' => [
         1 => 'Clear filters',
         2 => 'Limpar filtros',
@@ -82,7 +75,7 @@ $translations = [
         6 => 'Filter löschen',
         7 => 'Cancella filtri'
     ],
-    
+
     'active_filters' => [
         1 => 'Active filters:',
         2 => 'Filtros ativos:',
@@ -91,7 +84,7 @@ $translations = [
         6 => 'Aktive Filter:',
         7 => 'Filtri attivi:'
     ],
-    
+
     'categories' => [
         1 => 'Categories',
         2 => 'Categorias',
@@ -100,7 +93,7 @@ $translations = [
         6 => 'Kategorien',
         7 => 'Categorie'
     ],
-    
+
     'manufacturers' => [
         1 => 'Manufacturers',
         2 => 'Fabricantes',
@@ -109,7 +102,7 @@ $translations = [
         6 => 'Hersteller',
         7 => 'Produttori'
     ],
-    
+
     'price' => [
         1 => 'Price',
         2 => 'Preço',
@@ -118,7 +111,7 @@ $translations = [
         6 => 'Preis',
         7 => 'Prezzo'
     ],
-    
+
     'price_min' => [
         1 => 'Min. price',
         2 => 'Preço mín.',
@@ -127,7 +120,7 @@ $translations = [
         6 => 'Min. Preis',
         7 => 'Prezzo min.'
     ],
-    
+
     'price_max' => [
         1 => 'Max. price',
         2 => 'Preço máx.',
@@ -136,7 +129,7 @@ $translations = [
         6 => 'Max. Preis',
         7 => 'Prezzo max.'
     ],
-    
+
     'attributes' => [
         1 => 'Attributes',
         2 => 'Atributos',
@@ -145,7 +138,7 @@ $translations = [
         6 => 'Attribute',
         7 => 'Attributi'
     ],
-    
+
     'features' => [
         1 => 'Features',
         2 => 'Características',
@@ -154,7 +147,7 @@ $translations = [
         6 => 'Merkmale',
         7 => 'Caratteristiche'
     ],
-    
+
     'in_stock_only' => [
         1 => 'Only products in stock',
         2 => 'Apenas produtos em estoque',
@@ -163,7 +156,7 @@ $translations = [
         6 => 'Nur vorrätige Produkte',
         7 => 'Solo prodotti disponibili'
     ],
-    
+
     'in_stock' => [
         1 => 'In stock',
         2 => 'Em estoque',
@@ -172,7 +165,7 @@ $translations = [
         6 => 'Auf Lager',
         7 => 'Disponibile'
     ],
-    
+
     'out_of_stock' => [
         1 => 'Out of stock',
         2 => 'Sem estoque',
@@ -181,8 +174,7 @@ $translations = [
         6 => 'Nicht vorrätig',
         7 => 'Esaurito'
     ],
-    
-    // Paginación y carga
+
     'load_more' => [
         1 => 'Load more',
         2 => 'Carregar mais',
@@ -191,7 +183,7 @@ $translations = [
         6 => 'Mehr laden',
         7 => 'Carica altro'
     ],
-    
+
     'loading' => [
         1 => 'Loading...',
         2 => 'Carregando...',
@@ -200,7 +192,7 @@ $translations = [
         6 => 'Laden...',
         7 => 'Caricamento...'
     ],
-    
+
     'scroll_for_more' => [
         1 => 'Scroll for more results',
         2 => 'Role para mais resultados',
@@ -209,7 +201,7 @@ $translations = [
         6 => 'Scrollen für mehr',
         7 => 'Scorri per altri risultati'
     ],
-    
+
     'all_results_loaded' => [
         1 => 'All results loaded',
         2 => 'Todos os resultados carregados',
@@ -218,8 +210,7 @@ $translations = [
         6 => 'Alle Ergebnisse geladen',
         7 => 'Tutti i risultati caricati'
     ],
-    
-    // Sistema de compartir
+
     'share_search' => [
         1 => 'Share search',
         2 => 'Compartilhar pesquisa',
@@ -228,7 +219,7 @@ $translations = [
         6 => 'Suche teilen',
         7 => 'Condividi ricerca'
     ],
-    
+
     'link_copied' => [
         1 => 'Link copied to clipboard!',
         2 => 'Link copiado para a área de transferência!',
@@ -237,7 +228,7 @@ $translations = [
         6 => 'Link in Zwischenablage kopiert!',
         7 => 'Link copiato negli appunti!'
     ],
-    
+
     'copy_error' => [
         1 => 'Error copying link',
         2 => 'Erro ao copiar link',
@@ -246,7 +237,7 @@ $translations = [
         6 => 'Fehler beim Kopieren',
         7 => 'Errore copia link'
     ],
-    
+
     'no_search_to_share' => [
         1 => 'No search to share',
         2 => 'Nenhuma pesquisa para compartilhar',
@@ -255,8 +246,7 @@ $translations = [
         6 => 'Keine Suche zum Teilen',
         7 => 'Nessuna ricerca da condividere'
     ],
-    
-    // Errores
+
     'search_error' => [
         1 => 'Search error',
         2 => 'Erro na pesquisa',
@@ -265,7 +255,7 @@ $translations = [
         6 => 'Suchfehler',
         7 => 'Errore di ricerca'
     ],
-    
+
     'connection_error' => [
         1 => 'Connection error',
         2 => 'Erro de conexão',
@@ -274,8 +264,7 @@ $translations = [
         6 => 'Verbindungsfehler',
         7 => 'Errore di connessione'
     ],
-    
-    // Referencia
+
     'ref' => [
         1 => 'Ref',
         2 => 'Ref',
@@ -286,32 +275,13 @@ $translations = [
     ]
 ];
 
-// Obtener la traducción para el idioma actual o usar español como fallback
 $currentTranslations = [];
 foreach ($translations as $key => $langs) {
-    $currentTranslations[$key] = isset($langs[$id_lang]) ? $langs[$id_lang] : $langs[4]; // Fallback a español
+    $currentTranslations[$key] = isset($langs[$id_lang]) ? $langs[$id_lang] : $langs[4];
 }
 
-// Configurar headers para JavaScript
 header('Content-Type: application/javascript; charset=utf-8');
-header('Cache-Control: max-age=3600'); // Cache de 1 hora
+header('Cache-Control: max-age=3600');
 
-// Generar el archivo JavaScript
-?>
-/**
- * Traducciones del módulo de búsqueda
- * Idioma actual: <?php echo $context->language->iso_code; ?> (ID: <?php echo $id_lang; ?>)
- * Generado automáticamente
- */
-
-window.searchTranslations = <?php echo json_encode($currentTranslations, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT); ?>;
-
-// Helper function para obtener traducciones
-window.t = function(key, defaultValue) {
-    if (window.searchTranslations && window.searchTranslations[key]) {
-        return window.searchTranslations[key];
-    }
-    return defaultValue || key;
-};
-
-console.log('🌍 Search translations loaded for language: <?php echo $context->language->iso_code; ?>');
+echo 'window.searchTranslations = ' . json_encode($currentTranslations, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';';
+echo 'window.t = function (key, defaultValue) { return window.searchTranslations[key] || defaultValue || key; };';

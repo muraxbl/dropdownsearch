@@ -50,16 +50,12 @@ try {
         Tools::getValue('filters', '{}'), $MIN_QUERY_LENGTH
     );
 
-    // Obtener IDs de productos con boost para esta búsqueda
     $boosted_ids = getBoostIdsForQuery($query, $BOOST_RULES);
 
-    // Realizar búsqueda con relevancia SIN DUPLICADOS
     $searchResults = searchProductsNoDuplicates($query, $page, $limit, $filters, $id_lang, $id_shop, $boosted_ids);
 
-    // Obtener filtros disponibles basados en resultados
     $availableFilters = getAvailableFilters($query, $filters, $id_lang, $id_shop);
 
-    // Procesar resultados
     $results = [];
     if (is_array($searchResults['products']) && count($searchResults['products']) > 0) {
         foreach ($searchResults['products'] as $product_data) {
@@ -77,7 +73,6 @@ try {
                 $description = Tools::truncate($description, 120);
                 $quantity = StockAvailable::getQuantityAvailableByProduct((int) $product->id, 0, $id_shop);
 
-                // Obtener fabricante
                 $manufacturer = '';
                 if ($product->id_manufacturer > 0) {
                     $manu = new Manufacturer($product->id_manufacturer, $id_lang, $id_shop);
@@ -107,7 +102,6 @@ try {
         }
     }
 
-    // Construir respuesta completa
     $response = [
         'products' => $results,
         'pagination' => [
@@ -120,7 +114,6 @@ try {
         'filters' => $availableFilters
     ];
 
-    // Generar JSON
     $json = json_encode($response, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
 
     if ($json === false) {

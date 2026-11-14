@@ -1,10 +1,5 @@
-/**
- * Módulo de Búsqueda Desplegable
- * JavaScript corregido para usar ajax-search.php
- */
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Variables principales
+
     const moduleConfig = window.dropdownsearchConfig || {};
     const triggerSelector = moduleConfig.triggerSelector || '#search-icon';
     const typingDelay = Number.isFinite(parseInt(moduleConfig.typingDelay, 10)) ? Math.max(0, parseInt(moduleConfig.typingDelay, 10)) : 300;
@@ -24,26 +19,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingDiv = document.querySelector('.search-loading');
     const noResultsDiv = document.querySelector('.no-results');
 
-    // Debug: verificar elementos
-    /*console.log('🔍 Elements found:', {
-        triggerSelector: triggerSelector,
-        searchOverlay: !!searchOverlay,
-        searchInput: !!searchInput,
-        closeBtn: !!closeBtn
-    });*/
-
-    // Variables de control
     let searchTimeout;
     let currentRequest;
-    
-    // NUEVO: Variables para paginación lazy
+
     let currentQuery = '';
     let currentPage = 1;
     let isLoading = false;
     let hasMoreResults = true;
     let totalResults = 0;
-    
-    // NUEVO: Sistema de historial de búsqueda (en memoria)
+
     let searchHistory = [];
     const MAX_HISTORY_ITEMS = 10;
     let historyContainer;
@@ -73,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Event Listeners adicionales - RESTAURADOS
     if (closeBtn) {
         closeBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -81,14 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Cerrar con ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && searchOverlay && searchOverlay.classList.contains('active')) {
             hideSearchOverlay();
         }
     });
 
-    // Cerrar al hacer click fuera
     if (searchOverlay) {
         searchOverlay.addEventListener('click', function(e) {
             if (e.target === searchOverlay) {
@@ -97,38 +78,33 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Búsqueda con delay - RESTAURADO + HISTORIAL
     if (searchInput) {
-        // NUEVO: Crear contenedor de historial dinámicamente
+
         historyContainer = document.createElement('div');
         historyContainer.className = 'search-history';
         historyContainer.style.display = 'none';
-        
-        // Insertar historial después del input
+
         searchInput.parentNode.insertBefore(historyContainer, searchInput.nextSibling);
-        
-        // Mostrar historial al hacer focus (si hay)
+
         searchInput.addEventListener('focus', function() {
             if (searchHistory.length > 0 && this.value.trim() === '') {
                 showSearchHistory();
             }
         });
-        
+
         searchInput.addEventListener('input', function() {
             const query = this.value.trim();
-            
-            // Ocultar historial si hay texto
+
             if (query.length > 0) {
                 hideSearchHistory();
             } else if (searchHistory.length > 0) {
                 showSearchHistory();
             }
-            
-            // Cancelar búsqueda anterior
+
             if (searchTimeout) {
                 clearTimeout(searchTimeout);
             }
-            
+
             if (currentRequest) {
                 currentRequest.abort();
                 currentRequest = null;
@@ -139,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // NUEVO: Resetear paginación para nueva búsqueda
             if (query !== currentQuery) {
                 currentQuery = query;
                 currentPage = 1;
@@ -148,13 +123,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearResults();
             }
 
-            // Delay para evitar demasiadas peticiones
             searchTimeout = setTimeout(function() {
-                performSearch(query, 1, true); // true = nueva búsqueda
+                performSearch(query, 1, true);
             }, typingDelay);
         });
 
-        // Submit en Enter
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -175,81 +148,64 @@ document.addEventListener('DOMContentLoaded', function() {
                 navigateHistory(-1);
             }
         });
-        
-        // NUEVO: Scroll infinito para cargar más resultados - MEJORADO
+
         if (searchResults) {
             searchResults.addEventListener('scroll', function() {
-                // Solo cargar si está cerca del final (margen más pequeño para mejor UX)
-                if (this.scrollTop + this.clientHeight >= this.scrollHeight - 200 && 
+
+                if (this.scrollTop + this.clientHeight >= this.scrollHeight - 200 &&
                     hasMoreResults && !isLoading && currentQuery.length >= minQueryLength) {
-                    
+
                     const nextPage = currentPage + 1;
-                    console.log(`🔄 Solicitando página ${nextPage} para query: "${currentQuery}"`);
-                    
-                    // Ocultar inmediatamente el indicador "desplázate para cargar más"
+
                     const loadMoreIndicator = document.querySelector('.load-more-indicator');
                     if (loadMoreIndicator) {
                         loadMoreIndicator.style.opacity = '0';
                         setTimeout(() => loadMoreIndicator.remove(), 300);
                     }
-                    
+
                     performSearch(currentQuery, nextPage, false);
                 }
             });
         }
     }
 
-    /**
-     * Mostrar overlay de búsqueda
-     */
     function showSearchOverlay() {
-       // console.log('🔍 showSearchOverlay called');
-        //console.log('🔍 searchOverlay element:', !!searchOverlay);
-        
+
         if (searchOverlay) {
-            //console.log('🔍 Showing overlay...');
-            // CORREGIDO: Solo usar clase active, como funcionaba antes
+
             updateOverlayPosition();
             searchOverlay.classList.add('active');
             document.body.classList.add('search-overlay-open');
-            
+
             if (searchInput) {
                 setTimeout(function() {
                     searchInput.focus();
-                    //console.log('🔍 Input focused');
+
                 }, 100);
             } else {
-                console.warn('❌ searchInput not found');
+                console.warn('DropdownSearch: search input not found');
             }
         } else {
-            console.error('❌ searchOverlay element not found!');
+            console.error('DropdownSearch: search overlay not found');
         }
     }
 
-    /**
-     * Ocultar overlay de búsqueda
-     */
     function hideSearchOverlay() {
         if (searchOverlay) {
-            // CORREGIDO: Solo remover clase active
+
             searchOverlay.classList.remove('active');
             document.body.classList.remove('search-overlay-open');
             resetOverlayPosition();
             clearResults();
-            
+
             if (searchInput) {
                 searchInput.value = '';
             }
         }
     }
 
-    /**
-     * Realizar búsqueda - ACTUALIZADO para paginación lazy
-     */
     function performSearch(query, page = 1, isNewSearch = true) {
-       // console.log(`🔍 performSearch llamado con: query="${query}", page=${page}, isNewSearch=${isNewSearch}`);
-        //console.log(`📊 Estado actual: currentPage=${currentPage}, hasMoreResults=${hasMoreResults}`);
-        
+
         if (!query || query.length < minQueryLength) {
             clearResults();
             return;
@@ -267,19 +223,18 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoading();
             hideSearchHistory();
         } else {
-            // Mostrar indicador de carga para más resultados
+
             showLoadingMore();
         }
-        
+
         isLoading = true;
 
-        // Cancelar petición anterior solo si es nueva búsqueda
         if (currentRequest && isNewSearch) {
             currentRequest.abort();
         }
 
         const searchUrl = '/modules/dropdownsearch/ajax-search.php';
-        
+
         currentRequest = new XMLHttpRequest();
         currentRequest.open('POST', searchUrl, true);
         currentRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -288,32 +243,27 @@ document.addEventListener('DOMContentLoaded', function() {
         currentRequest.onreadystatechange = function() {
             if (this.readyState === 4) {
                 isLoading = false;
-                
+
                 if (this.status === 200) {
-                    //console.log('🔍 Raw response:', this.responseText);
-                    
+
                     try {
                         const response = JSON.parse(this.responseText);
-                        //console.log('🔍 Parsed response:', response);
 
                         if (window.enhancedSearchFilters && typeof window.enhancedSearchFilters.handleSearchResponse === 'function') {
                             window.enhancedSearchFilters.handleSearchResponse(response, isNewSearch);
                         }
-                        
-                        // Manejar nuevo formato con paginación
+
                         if (response.products && Array.isArray(response.products)) {
-                            //console.log(response.products);
+
                             if (response.products.length > 0) {
-                                // Actualizar variables de paginación
+
                                 if (response.pagination) {
-                                    const previousPage = currentPage;
-                                    currentPage = response.pagination.current_page; // CORREGIDO: actualizar la página actual
+                                    currentPage = response.pagination.current_page;
                                     hasMoreResults = response.pagination.has_more;
                                     totalResults = response.pagination.total_products;
-                                    
-                                    //console.log(`📄 Página actualizada de ${previousPage} a ${currentPage}. Más resultados: ${hasMoreResults}, Total: ${totalResults}`);
+
                                 }
-                                
+
                                 if (isNewSearch) {
                                     addToSearchHistory(query);
                                 }
@@ -322,13 +272,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (isNewSearch) {
                                     displayNoResults(query);
                                 } else {
-                                    // No hay más resultados en esta página
+
                                     hasMoreResults = false;
-                                    console.log('🔚 No hay más resultados disponibles');
                                 }
                             }
                         }
-                        // Compatibilidad con formato antiguo (por si acaso)
+
                         else if (Array.isArray(response)) {
                             if (response.length > 0) {
                                 addToSearchHistory(query);
@@ -339,17 +288,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                             }
                         }
-                        // Manejar errores del servidor
+
                         else if (response.error) {
                             console.error('Error de búsqueda:', response.error);
                             if (isNewSearch) {
                                 displayNoResults(query);
                             }
                         }
-                        
+
                     } catch (error) {
                         console.error('Error parsing search results:', error);
-                        console.error('Response was:', this.responseText);
                         if (isNewSearch) {
                             displayNoResults(query);
                         }
@@ -360,13 +308,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         displayNoResults(query);
                     }
                 }
-                
+
                 hideLoading();
                 hideLoadingMore();
             }
         };
 
-        // Enviar parámetros incluyendo página
         const activeFilters = window.enhancedSearchFilters && typeof window.enhancedSearchFilters.getActiveFilters === 'function'
             ? window.enhancedSearchFilters.getActiveFilters()
             : {};
@@ -375,14 +322,10 @@ document.addEventListener('DOMContentLoaded', function() {
                       '&page=' + page +
                       '&limit=' + pageLimit +
                       '&filters=' + encodeURIComponent(JSON.stringify(activeFilters));
-        
-        //console.log(`📤 Enviando petición: ${params}`);
+
         currentRequest.send(params);
     }
 
-    /**
-     * Mostrar loading
-     */
     function showLoading() {
         if (loadingDiv) {
             loadingDiv.style.display = 'block';
@@ -395,33 +338,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /**
-     * Ocultar loading
-     */
     function hideLoading() {
         if (loadingDiv) {
             loadingDiv.style.display = 'none';
         }
     }
 
-    /**
-     * Mostrar resultados - ACTUALIZADO para mejor UX de paginación
-     */
     function displayResults(results, query, isNewSearch = true, totalFound = 0) {
         if (!resultsContainer || !Array.isArray(results)) {
             displayNoResults(query);
             return;
         }
 
-        // Si es nueva búsqueda, limpiar resultados anteriores
         if (isNewSearch) {
             resultsContainer.innerHTML = '';
-            
-            // Añadir contador de resultados si está disponible
+
             if (totalFound > 0) {
                 const countDiv = document.createElement('div');
                 countDiv.className = 'search-results-count';
-                const productText = totalFound === 1 
+                const productText = totalFound === 1
                     ? t('product_found', 'product found')
                     : t('products_found', 'products found');
                 countDiv.textContent = `${totalFound} ${productText}`;
@@ -429,50 +364,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Remover indicador anterior antes de añadir nuevos productos
         const oldLoadMoreDiv = document.querySelector('.load-more-indicator');
         if (oldLoadMoreDiv) {
             oldLoadMoreDiv.remove();
         }
 
-        // Generar HTML de resultados y añadirlos con pequeña animación
         results.forEach(function(product, index) {
             const resultItem = createResultItem(product);
-            
-            // Animación sutil de entrada para nuevos elementos (solo si no es nueva búsqueda)
+
             if (!isNewSearch) {
                 resultItem.style.opacity = '0';
                 resultItem.style.transform = 'translateY(20px)';
                 resultsContainer.appendChild(resultItem);
-                
-                // Animar entrada con delay progresivo
+
                 setTimeout(() => {
                     resultItem.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     resultItem.style.opacity = '1';
                     resultItem.style.transform = 'translateY(0)';
-                }, index * 50); // 50ms de delay entre cada producto
+                }, index * 50);
             } else {
                 resultsContainer.appendChild(resultItem);
             }
         });
 
-        // Mostrar contenedor de resultados
         resultsContainer.style.display = 'block';
         if (noResultsDiv) {
             noResultsDiv.style.display = 'none';
         }
-        
-        // Añadir indicador de "cargar más" al final si hay más resultados
+
         if (hasMoreResults && !isNewSearch) {
-            // Esperar a que terminen las animaciones antes de mostrar el indicador
+
             setTimeout(() => {
                 addLoadMoreIndicator();
             }, results.length * 50 + 200);
         } else if (hasMoreResults && isNewSearch) {
             addLoadMoreIndicator();
         }
-        
-        // Si no hay más resultados, añadir indicador de "fin"
+
         if (!hasMoreResults && !isNewSearch) {
             setTimeout(() => {
                 addEndIndicator();
@@ -531,21 +459,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.performSearch = performSearch;
     window.originalDisplayResults = displayResults;
-    
-    /**
-     * Añadir indicador de "cargar más"
-     */
+
     function addLoadMoreIndicator() {
         if (!document.querySelector('.load-more-indicator') && hasMoreResults) {
             const loadMoreDiv = document.createElement('div');
             loadMoreDiv.className = 'load-more-indicator';
             loadMoreDiv.innerHTML = '<p><i class="scroll-icon">↓</i> Desplázate para cargar más resultados...</p>';
-            
-            // Animación de entrada
+
             loadMoreDiv.style.opacity = '0';
             loadMoreDiv.style.transform = 'translateY(10px)';
             resultsContainer.appendChild(loadMoreDiv);
-            
+
             setTimeout(() => {
                 loadMoreDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                 loadMoreDiv.style.opacity = '1';
@@ -553,21 +477,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 100);
         }
     }
-    
-    /**
-     * Añadir indicador de "fin de resultados"
-     */
+
     function addEndIndicator() {
         if (!document.querySelector('.end-results-indicator')) {
             const endDiv = document.createElement('div');
             endDiv.className = 'end-results-indicator';
             endDiv.innerHTML = '<p>✓ Has visto todos los resultados</p>';
-            
-            // Animación de entrada
+
             endDiv.style.opacity = '0';
             endDiv.style.transform = 'translateY(10px)';
             resultsContainer.appendChild(endDiv);
-            
+
             setTimeout(() => {
                 endDiv.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                 endDiv.style.opacity = '1';
@@ -576,9 +496,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /**
-     * Mostrar loading para más resultados
-     */
     function showLoadingMore() {
         let loadingMoreDiv = document.querySelector('.loading-more');
         if (!loadingMoreDiv) {
@@ -592,9 +509,6 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingMoreDiv.style.display = 'block';
     }
 
-    /**
-     * Ocultar loading para más resultados
-     */
     function hideLoadingMore() {
         const loadingMoreDiv = document.querySelector('.loading-more');
         if (loadingMoreDiv) {
@@ -602,26 +516,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    /**
-     * Crear elemento de resultado
-     */
     function createResultItem(product) {
         const item = document.createElement('div');
         item.className = 'search-result-item';
 
-        // Imagen
         const imageDiv = document.createElement('div');
         imageDiv.className = 'result-image';
-        
+
         const img = document.createElement('img');
         img.src = window.dropdownsearchSecurity.url(product.image) || '/img/p/en-default-medium_default.jpg';
         img.alt = product.name || '';
         img.onerror = function() {
+            this.onerror = null;
             this.src = '/img/p/en-default-medium_default.jpg';
         };
         imageDiv.appendChild(img);
 
-        // Contenido
         const contentDiv = document.createElement('div');
         contentDiv.className = 'result-content';
 
@@ -629,15 +539,10 @@ document.addEventListener('DOMContentLoaded', function() {
         title.className = 'result-title';
         title.textContent = product.name || '';
 
-        const description = document.createElement('p');
-        description.className = 'result-description';
-        description.textContent = product.description_short || '';
-
         const priceDiv = document.createElement('div');
         priceDiv.className = 'result-price';
         priceDiv.textContent = product.price || '';
 
-        // Referencia si existe
         if (product.reference) {
             const refDiv = document.createElement('div');
             refDiv.className = 'result-reference';
@@ -648,11 +553,9 @@ document.addEventListener('DOMContentLoaded', function() {
         contentDiv.appendChild(title);
         contentDiv.appendChild(priceDiv);
 
-        // Ensamblar item
         item.appendChild(imageDiv);
         item.appendChild(contentDiv);
 
-        // Click handler para ir al producto
         const productUrl = window.dropdownsearchSecurity.url(product.link);
         if (productUrl) {
             item.style.cursor = 'pointer';
@@ -664,29 +567,23 @@ document.addEventListener('DOMContentLoaded', function() {
         return item;
     }
 
-    /**
-     * Mostrar mensaje de no resultados
-     */
     function displayNoResults(query) {
         if (resultsContainer) {
             resultsContainer.style.display = 'none';
         }
-        
+
         if (noResultsDiv) {
             noResultsDiv.textContent = t('no_results', 'No results found') + ' \"' + (query || '') + '\"';
             noResultsDiv.style.display = 'block';
         }
     }
 
-    /**
-     * Limpiar resultados
-     */
     function clearResults() {
         if (resultsContainer) {
             resultsContainer.innerHTML = '';
             resultsContainer.style.display = 'none';
         }
-        
+
         if (noResultsDiv) {
             noResultsDiv.style.display = 'none';
         }
@@ -695,71 +592,59 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingDiv.style.display = 'none';
         }
     }
-    
-    // NUEVO: Funciones de historial de búsqueda
-    
-    /**
-     * Añadir término al historial
-     */
+
     function addToSearchHistory(query) {
         if (!query || query.length < minQueryLength) return;
-        
-        // Evitar duplicados
-        const existingIndex = searchHistory.findIndex(item => 
+
+        const existingIndex = searchHistory.findIndex(item =>
             item.query.toLowerCase() === query.toLowerCase()
         );
-        
+
         if (existingIndex > -1) {
-            // Mover al principio si ya existe
+
             searchHistory.unshift(searchHistory.splice(existingIndex, 1)[0]);
         } else {
-            // Añadir nuevo al principio
+
             searchHistory.unshift({
                 query: query,
                 timestamp: new Date().toISOString(),
                 count: 1
             });
         }
-        
-        // Mantener solo los últimos MAX_HISTORY_ITEMS
+
         if (searchHistory.length > MAX_HISTORY_ITEMS) {
             searchHistory = searchHistory.slice(0, MAX_HISTORY_ITEMS);
         }
-        
-        //console.log('📝 Historial actualizado:', searchHistory);
+
     }
-    
-    /**
-     * Mostrar historial de búsqueda
-     */
+
     function showSearchHistory() {
         if (!historyContainer || searchHistory.length === 0) return;
-        
+
         historyContainer.innerHTML = '<h4>Búsquedas recientes</h4>';
-        
+
         searchHistory.forEach(function(item, index) {
             const historyItem = document.createElement('div');
             historyItem.className = 'history-item';
             historyItem.setAttribute('data-query', item.query);
-            
+
             const querySpan = document.createElement('span');
             querySpan.className = 'history-query';
             querySpan.textContent = item.query;
-            
+
             const timeSpan = document.createElement('span');
             timeSpan.className = 'history-time';
             timeSpan.textContent = formatTimeAgo(item.timestamp);
-            
+
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'history-delete';
             deleteBtn.innerHTML = '×';
             deleteBtn.setAttribute('data-index', index);
-            
+
             historyItem.appendChild(querySpan);
             historyItem.appendChild(timeSpan);
             historyItem.appendChild(deleteBtn);
-            
-            // Click para usar búsqueda del historial
+
             historyItem.addEventListener('click', function(e) {
                 if (!e.target.classList.contains('history-delete')) {
                     const query = this.getAttribute('data-query');
@@ -768,69 +653,55 @@ document.addEventListener('DOMContentLoaded', function() {
                     performSearch(query);
                 }
             });
-            
-            // Click para eliminar del historial
+
             deleteBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 const index = parseInt(this.getAttribute('data-index'));
                 removeFromHistory(index);
             });
-            
+
             historyContainer.appendChild(historyItem);
         });
-        
+
         historyContainer.style.display = 'block';
         showingHistory = true;
     }
-    
-    /**
-     * Ocultar historial
-     */
+
     function hideSearchHistory() {
         if (historyContainer) {
             historyContainer.style.display = 'none';
             showingHistory = false;
         }
     }
-    
-    /**
-     * Eliminar elemento del historial
-     */
+
     function removeFromHistory(index) {
         if (index >= 0 && index < searchHistory.length) {
             searchHistory.splice(index, 1);
             if (searchHistory.length > 0) {
-                showSearchHistory(); // Refrescar vista
+                showSearchHistory();
             } else {
                 hideSearchHistory();
             }
         }
     }
-    
-    /**
-     * Navegar por historial con flechas
-     */
+
     function navigateHistory(direction) {
-        // Implementación básica - seleccionar siguiente/anterior
+
         const historyItems = historyContainer.querySelectorAll('.history-item');
         if (historyItems.length === 0) return;
-        
-        // Por simplicidad, seleccionar el primero con flecha abajo
+
         if (direction > 0 && historyItems[0]) {
             const query = historyItems[0].getAttribute('data-query');
             searchInput.value = query;
             hideSearchHistory();
         }
     }
-    
-    /**
-     * Formatear tiempo transcurrido
-     */
+
     function formatTimeAgo(timestamp) {
         const now = new Date();
         const time = new Date(timestamp);
         const diff = Math.floor((now - time) / 1000);
-        
+
         if (diff < 60) return 'hace un momento';
         if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`;
         if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`;
