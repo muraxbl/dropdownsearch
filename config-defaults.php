@@ -1,7 +1,5 @@
 <?php
-/**
- * Shared configuration helpers for dropdownsearch.
- */
+
 
 if (!defined('_PS_VERSION_')) {
     exit;

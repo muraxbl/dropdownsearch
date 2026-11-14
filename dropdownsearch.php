@@ -1,11 +1,5 @@
 <?php
-/**
- * Módulo de Búsqueda Desplegable para PrestaShop 1.7
- * Con sistema de filtros avanzado, URLs compartibles y traducciones multiidioma
- * 
- * @author Luis C
- * @version 2.3.0
- */
+
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -95,9 +89,6 @@ class DropdownSearch extends Module
             parent::uninstall();
     }
 
-    /**
-     * Hook para añadir CSS y JS en el header
-     */
     public function hookDisplayHeader()
     {
         Media::addJsDef([
@@ -111,28 +102,24 @@ class DropdownSearch extends Module
             ],
         ]);
 
-        // CSS principal
         $this->context->controller->registerStylesheet(
             'module-dropdownsearch-css',
             'modules/dropdownsearch/views/css/dropdownsearch.css',
             ['media' => 'all', 'priority' => 200]
         );
 
-        // CSS para filtros
         $this->context->controller->registerStylesheet(
             'module-dropdownsearch-filters-css',
             'modules/dropdownsearch/views/css/search-filters.css',
             ['media' => 'all', 'priority' => 201]
         );
 
-        // CSS para sistema de hash
         $this->context->controller->registerStylesheet(
             'module-dropdownsearch-hash-css',
             'modules/dropdownsearch/views/css/search-hash-system.css',
             ['media' => 'all', 'priority' => 202]
         );
 
-        // JavaScript de traducciones (PRIMERO - debe cargarse antes que el resto)
         $this->context->controller->registerJavascript(
             'module-dropdownsearch-translations',
             'modules/dropdownsearch/views/js/search-translations.js',
@@ -145,21 +132,18 @@ class DropdownSearch extends Module
             ['position' => 'bottom', 'priority' => 198]
         );
 
-        // JavaScript principal
         $this->context->controller->registerJavascript(
             'module-dropdownsearch-js',
             'modules/dropdownsearch/views/js/dropdownsearch-simple.js',
             ['position' => 'bottom', 'priority' => 200]
         );
 
-        // JavaScript para filtros
         $this->context->controller->registerJavascript(
             'module-dropdownsearch-filters-js',
             'modules/dropdownsearch/views/js/search-filters.js',
             ['position' => 'bottom', 'priority' => 201]
         );
 
-        // JavaScript para sistema de hash
         $this->context->controller->registerJavascript(
             'module-dropdownsearch-hash-js',
             'modules/dropdownsearch/views/js/search-hash-system.js',
@@ -167,9 +151,6 @@ class DropdownSearch extends Module
         );
     }
 
-    /**
-     * Hook para mostrar el contenedor de búsqueda
-     */
     public function hookDisplayBeforeBodyClosingTag()
     {
         $this->context->smarty->assign([
@@ -180,9 +161,6 @@ class DropdownSearch extends Module
         return $this->display(__FILE__, 'views/templates/hook/search-container.tpl');
     }
 
-    /**
-     * Procesa las peticiones AJAX de búsqueda
-     */
     public function getContent()
     {
         $output = '';
@@ -199,9 +177,6 @@ class DropdownSearch extends Module
         return $output;
     }
 
-    /**
-     * Guarda la configuración del módulo.
-     */
     private function processConfiguration()
     {
         $token = Tools::getValue('token');
@@ -287,9 +262,6 @@ class DropdownSearch extends Module
         return $this->displayConfirmation($this->l('Configuración actualizada correctamente.'));
     }
 
-    /**
-     * Devuelve el selector CSS que abre el buscador.
-     */
     private function getTriggerSelector()
     {
         $selector = trim((string) Configuration::get(self::CONFIG_TRIGGER_SELECTOR));
@@ -711,9 +683,6 @@ class DropdownSearch extends Module
         </section>';
     }
 
-    /**
-     * Procesa la búsqueda AJAX - Mantenido para compatibilidad
-     */
     private function processAjaxSearch()
     {
         if (!Tools::getValue('query')) {
@@ -724,7 +693,6 @@ class DropdownSearch extends Module
         $id_lang = (int) $this->context->language->id;
         $id_shop = (int) $this->context->shop->id;
 
-        // Usar el sistema de búsqueda nativo de PrestaShop
         $products = Product::searchByName($id_lang, $query, null, null, null, null, true, false, 10);
 
         $results = [];
@@ -746,9 +714,6 @@ class DropdownSearch extends Module
         die(json_encode($results));
     }
 
-    /**
-     * Obtiene la URL de la imagen del producto
-     */
     private function getProductImageUrl($product)
     {
         $image = Image::getCover($product->id);
@@ -759,9 +724,6 @@ class DropdownSearch extends Module
         return '';
     }
 
-    /**
-     * Formulario de configuración
-     */
     private function displayForm()
     {
         $currentIndex = $this->context->link->getAdminLink('AdminModules', false)

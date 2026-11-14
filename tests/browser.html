@@ -8,6 +8,7 @@
 </div></div><pre id="test-result">RUNNING</pre>
 <script>window.dropdownsearchConfig = {triggerSelector:'#search-icon'};</script>
 <script src="../views/js/search-security.js"></script>
+<script src="../views/js/search-translations.js"></script>
 <script src="../views/js/dropdownsearch-simple.js"></script>
 <script src="../views/js/search-filters.js"></script>
 <script src="../views/js/search-hash-system.js"></script>
@@ -37,6 +38,12 @@ addEventListener('load', () => setTimeout(async () => {
         check(!document.querySelector('.search-filters-panel img, .search-filters-panel [onmouseover]'), 'Catalog facets injected markup');
         manager.showError(payload);
         check(!document.querySelector('.no-results img'), 'Error message injected markup');
+        check(window.t('price', 'Price') === 'Precio', 'Shared Spanish translations missing');
+        window.originalDisplayResults([{name:payload, reference:payload, image:'javascript:window.xssExecuted=true', link:'javascript:window.xssExecuted=true'}], payload, true, 1);
+        const mainItem = document.querySelector('.search-result-item');
+        check(mainItem.querySelector('h4').textContent === payload, 'Main renderer interpreted HTML');
+        check(mainItem.style.cursor !== 'pointer', 'Main renderer accepted an unsafe product link');
+        mainItem.click();
         const item = manager.createProductElement({name:payload, image:'javascript:window.xssExecuted=true', link:'javascript:window.xssExecuted=true'});
         check(item.querySelector('h4').textContent === payload, 'Product name is not plain text');
         check(!item.querySelector('img').src.startsWith('javascript:'), 'Unsafe image URL accepted');
@@ -49,9 +56,17 @@ addEventListener('load', () => setTimeout(async () => {
         manager.setActiveFilters({categories:['1'], price_min:12.5, in_stock:true});
         check(document.querySelector('[data-filter-type="categories"]').checked, 'Valid filter selection broken');
         check(document.querySelector('.price-min').value === '12.5', 'Valid price filter broken');
+        let removals = 0;
+        const originalRemove = manager.removeFilter;
+        manager.removeFilter = () => removals++;
+        manager.updateActiveFiltersDisplay();
+        manager.updateActiveFiltersDisplay();
+        document.querySelector('.active-filters-list .remove-filter').click();
+        check(removals === 1, 'Repeated rendering registered duplicate filter handlers');
+        manager.removeFilter = originalRemove;
         await new Promise(resolve => setTimeout(resolve, 50));
         check(!window.xssExecuted, 'An injected script executed');
-        output.textContent = 'PASS browser: shared URLs, HTML sinks, catalog facets, errors, URL protocols, valid filters';
+        output.textContent = 'PASS browser: shared URLs, HTML sinks, catalog facets, errors, URL protocols, valid filters, single filter event';
         document.body.dataset.testResult = 'pass';
     } catch (error) {
         output.textContent = 'FAIL ' + error.message;
